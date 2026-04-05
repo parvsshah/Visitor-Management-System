@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Visitor Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            padding: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-link svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+        }
+
+        .user-profile {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+
+        .user-details h4 {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .user-details p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        /* Content Cards */
+        .content-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* Table */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-checked-in {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+        }
+
+        .status-checked-out {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .status-overstay {
+            background: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+        }
+
+        .status-cancelled {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+        }
+
+        .action-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar .nav-link span,
+            .logo,
+            .user-details,
+            .logout-btn {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 70px;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">VMS Dashboard</div>
+
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="checkin.html" class="nav-link">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span>Check-In</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="checkout.html" class="nav-link">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span>Check-Out</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="visitors.html" class="nav-link" id="visitorsLink">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                        </svg>
+                        <span>Visitors</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="reports.html" class="nav-link active" id="reportsLink">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                        </svg>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="users.html" class="nav-link" id="usersLink">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                        </svg>
+                        <span>Users</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="user-profile">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div class="user-details">
+                        <h4 id="userName">Loading...</h4>
+                        <p id="userRole">Role</p>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1>Reports</h1>
+                <div class="filter-group">
+                    <label>Select Report Type</label>
+                    <select id="reportTypeSelector" onchange="switchReportType()"
+                        style="padding: 10px 20px; border: 2px solid #667eea; border-radius: 8px; font-size: 14px; font-weight: 600; background: white; color: #667eea; cursor: pointer;">
+                        <option value="verification-logs">Verification Logs</option>
+                        <option value="visit-sessions">Visit Sessions</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Verification Logs Section -->
+            <div class="content-section" id="verificationLogsSection">
+                <div class="section-header">
+                    <h2 class="section-title">Verification Logs</h2>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Start Date</label>
+                        <input type="date" id="logsStartDate">
+                    </div>
+                    <div class="filter-group">
+                        <label>End Date</label>
+                        <input type="date" id="logsEndDate">
+                    </div>
+                    <div class="filter-group">
+                        <label>Action</label>
+                        <select id="logsAction">
+                            <option value="">All Actions</option>
+                            <option value="Check-In">Check-In</option>
+                            <option value="Check-Out">Check-Out</option>
+                            <option value="Verification">Verification</option>
+                            <option value="Status Update">Status Update</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="justify-content: flex-end;">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="loadVerificationLogs(1)">Apply Filters</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <div id="logsLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading verification logs...</p>
+                    </div>
+                    <div id="logsError" class="error-message" style="display: none;"></div>
+                    <table id="logsTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Log ID</th>
+                                <th>Session ID</th>
+                                <th>Visitor Name</th>
+                                <th>Action</th>
+                                <th>Action Details</th>
+                                <th>Officer Name</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="logsPagination" style="display: none;">
+                    <button id="logsPrevBtn" onclick="loadVerificationLogs(currentLogsPage - 1)">Previous</button>
+                    <span id="logsPageInfo">Page 1 of 1</span>
+                    <button id="logsNextBtn" onclick="loadVerificationLogs(currentLogsPage + 1)">Next</button>
+                </div>
+            </div>
+
+            <!-- Visit Sessions Section -->
+            <div class="content-section" id="visitSessionsSection" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">Visit Sessions</h2>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Start Date</label>
+                        <input type="date" id="sessionsStartDate">
+                    </div>
+                    <div class="filter-group">
+                        <label>End Date</label>
+                        <input type="date" id="sessionsEndDate">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="sessionsStatus">
+                            <option value="">All Status</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="Checked-In">Checked-In</option>
+                            <option value="Checked-Out">Checked-Out</option>
+                            <option value="Cancelled">Cancelled</option>
+                            <option value="Overstay">Overstay</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Visitor Name</label>
+                        <input type="text" id="sessionsVisitorName" placeholder="Search by name...">
+                    </div>
+                    <div class="filter-group" style="justify-content: flex-end;">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="loadVisitSessions(1)">Apply Filters</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <div id="sessionsLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading visit sessions...</p>
+                    </div>
+                    <div id="sessionsError" class="error-message" style="display: none;"></div>
+                    <table id="sessionsTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Session ID</th>
+                                <th>Visitor Name</th>
+                                <th>Contact</th>
+                                <th>Host Name</th>
+                                <th>Department</th>
+                                <th>Purpose</th>
+                                <th>Check-In</th>
+                                <th>Check-Out</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionsBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="sessionsPagination" style="display: none;">
+                    <button id="sessionsPrevBtn" onclick="loadVisitSessions(currentSessionsPage - 1)">Previous</button>
+                    <span id="sessionsPageInfo">Page 1 of 1</span>
+                    <button id="sessionsNextBtn" onclick="loadVisitSessions(currentSessionsPage + 1)">Next</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
+        let currentLogsPage = 1;
+        let currentSessionsPage = 1;
+        let logsPagination = {};
+        let sessionsPagination = {};
+
+        // Check authentication and admin role
+        function checkAuth() {
+            if (!token) {
+                window.location.href = 'login.html';
+                return false;
+            }
+
+            // Check if user is admin
+            if (user.Role !== 'Admin') {
+                alert('Access Denied: This page is only accessible to Admin users.');
+                window.location.href = 'dashboard.html';
+                return false;
+            }
+
+            return true;
+        }
+
+        // API call helper
+        async function apiCall(endpoint, options = {}) {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    ...options.headers
+                }
+            });
+
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+                return null;
+            }
+
+            if (response.status === 403) {
+                alert('Access Denied: You do not have permission to access this resource.');
+                window.location.href = 'dashboard.html';
+                return null;
+            }
+
+            return response.json();
+        }
+
+        // Load user profile
+        function loadUserProfile() {
+            if (user.Full_Name) {
+                document.getElementById('userName').textContent = user.Full_Name;
+                document.getElementById('userRole').textContent = user.Role;
+                document.getElementById('userAvatar').textContent = user.Full_Name.charAt(0).toUpperCase();
+            }
+
+            // Hide links based on role
+            if (user.Role !== 'Admin') {
+                document.getElementById('usersLink').style.display = 'none';
+                document.getElementById('reportsLink').style.display = 'none';
+            }
+        }
+
+        // Load verification logs
+        async function loadVerificationLogs(page = 1) {
+            try {
+                currentLogsPage = page;
+                const startDate = document.getElementById('logsStartDate').value;
+                const endDate = document.getElementById('logsEndDate').value;
+                const action = document.getElementById('logsAction').value;
+
+                let queryParams = `page=${page}&limit=50`;
+                if (startDate && endDate) {
+                    queryParams += `&start_date=${startDate}&end_date=${endDate}`;
+                }
+                if (action) {
+                    queryParams += `&action=${action}`;
+                }
+
+                const loading = document.getElementById('logsLoading');
+                const table = document.getElementById('logsTable');
+                const errorDiv = document.getElementById('logsError');
+                const tbody = document.getElementById('logsBody');
+                const pagination = document.getElementById('logsPagination');
+
+                loading.style.display = 'block';
+                table.style.display = 'none';
+                errorDiv.style.display = 'none';
+                pagination.style.display = 'none';
+
+                const data = await apiCall(`/reports/verification-logs?${queryParams}`);
+
+                loading.style.display = 'none';
+
+                if (data && data.success) {
+                    table.style.display = 'table';
+                    logsPagination = data.pagination;
+
+                    if (data.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #666;">No verification logs found</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.data.map(log => `
+                            <tr>
+                                <td>${log.Log_ID}</td>
+                                <td>${log.Session_ID}</td>
+                                <td><strong>${log.Visitor_Name || 'N/A'}</strong></td>
+                                <td><span class="action-badge">${log.Action}</span></td>
+                                <td>${log.Action_Details || '-'}</td>
+                                <td>${log.Officer_Name || 'System'}</td>
+                                <td>${new Date(log.Timestamp).toLocaleString()}</td>
+                            </tr>
+                        `).join('');
+
+                        // Update pagination
+                        pagination.style.display = 'flex';
+                        document.getElementById('logsPageInfo').textContent = `Page ${logsPagination.page} of ${logsPagination.pages}`;
+                        document.getElementById('logsPrevBtn').disabled = logsPagination.page === 1;
+                        document.getElementById('logsNextBtn').disabled = logsPagination.page === logsPagination.pages;
+                    }
+                } else {
+                    errorDiv.textContent = 'Failed to load verification logs';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading verification logs:', error);
+                document.getElementById('logsLoading').style.display = 'none';
+                document.getElementById('logsError').textContent = 'Error loading verification logs';
+                document.getElementById('logsError').style.display = 'block';
+            }
+        }
+
+        // Load visit sessions
+        async function loadVisitSessions(page = 1) {
+            try {
+                currentSessionsPage = page;
+                const startDate = document.getElementById('sessionsStartDate').value;
+                const endDate = document.getElementById('sessionsEndDate').value;
+                const status = document.getElementById('sessionsStatus').value;
+                const visitorName = document.getElementById('sessionsVisitorName').value;
+
+                let queryParams = `page=${page}&limit=50`;
+                if (startDate && endDate) {
+                    queryParams += `&start_date=${startDate}&end_date=${endDate}`;
+                }
+                if (status) {
+                    queryParams += `&status=${status}`;
+                }
+                if (visitorName) {
+                    queryParams += `&visitor_name=${encodeURIComponent(visitorName)}`;
+                }
+
+                const loading = document.getElementById('sessionsLoading');
+                const table = document.getElementById('sessionsTable');
+                const errorDiv = document.getElementById('sessionsError');
+                const tbody = document.getElementById('sessionsBody');
+                const pagination = document.getElementById('sessionsPagination');
+
+                loading.style.display = 'block';
+                table.style.display = 'none';
+                errorDiv.style.display = 'none';
+                pagination.style.display = 'none';
+
+                const data = await apiCall(`/reports/visit-sessions?${queryParams}`);
+
+                loading.style.display = 'none';
+
+                if (data && data.success) {
+                    table.style.display = 'table';
+                    sessionsPagination = data.pagination;
+
+                    if (data.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #666;">No visit sessions found</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.data.map(session => `
+                            <tr>
+                                <td>${session.Session_ID}</td>
+                                <td><strong>${session.Visitor_Name}</strong></td>
+                                <td>${session.Contact_No}</td>
+                                <td>${session.Host_Name}</td>
+                                <td>${session.Host_Department || '-'}</td>
+                                <td>${session.Visit_Purpose}</td>
+                                <td>${new Date(session.CheckIn_Time).toLocaleString()}</td>
+                                <td>${session.CheckOut_Time ? new Date(session.CheckOut_Time).toLocaleString() : '-'}</td>
+                                <td>${session.Duration_Minutes} min</td>
+                                <td><span class="status-badge status-${session.Visit_Status.toLowerCase().replace('-', '')}">${session.Visit_Status}</span></td>
+                            </tr>
+                        `).join('');
+
+                        // Update pagination
+                        pagination.style.display = 'flex';
+                        document.getElementById('sessionsPageInfo').textContent = `Page ${sessionsPagination.page} of ${sessionsPagination.pages}`;
+                        document.getElementById('sessionsPrevBtn').disabled = sessionsPagination.page === 1;
+                        document.getElementById('sessionsNextBtn').disabled = sessionsPagination.page === sessionsPagination.pages;
+                    }
+                } else {
+                    errorDiv.textContent = 'Failed to load visit sessions';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading visit sessions:', error);
+                document.getElementById('sessionsLoading').style.display = 'none';
+                document.getElementById('sessionsError').textContent = 'Error loading visit sessions';
+                document.getElementById('sessionsError').style.display = 'block';
+            }
+        }
+
+        // Switch between report types
+        function switchReportType() {
+            const reportType = document.getElementById('reportTypeSelector').value;
+            const logsSection = document.getElementById('verificationLogsSection');
+            const sessionsSection = document.getElementById('visitSessionsSection');
+
+            if (reportType === 'verification-logs') {
+                logsSection.style.display = 'block';
+                sessionsSection.style.display = 'none';
+                loadVerificationLogs(1);
+            } else if (reportType === 'visit-sessions') {
+                logsSection.style.display = 'none';
+                sessionsSection.style.display = 'block';
+                loadVisitSessions(1);
+            }
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                loadUserProfile();
+                // Load only the default report (Verification Logs)
+                loadVerificationLogs(1);
+            }
+        });
+    </script>
+</body>
+
+</html>

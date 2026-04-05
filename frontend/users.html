@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Management - Visitor Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; color: #333; }
+        .container { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; position: fixed; height: 100vh; overflow-y: auto; }
+        .logo { font-size: 1.5rem; font-weight: 700; margin-bottom: 30px; padding: 10px; border-bottom: 2px solid rgba(255,255,255,0.2); }
+        .nav-menu { list-style: none; }
+        .nav-item { margin-bottom: 5px; }
+        .nav-link { display: flex; align-items: center; padding: 12px 15px; color: white; text-decoration: none; border-radius: 10px; transition: all 0.3s; }
+        .nav-link:hover { background: rgba(255,255,255,0.2); }
+        .nav-link.active { background: rgba(255,255,255,0.3); }
+        .nav-link svg { width: 20px; height: 20px; margin-right: 12px; }
+        .user-profile { margin-top: auto; padding-top: 20px; border-top: 2px solid rgba(255,255,255,0.2); }
+        .user-info { display: flex; align-items: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 10px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: white; color: #667eea; display: flex; align-items: center; justify-content: center; font-weight: 700; margin-right: 12px; }
+        .user-details h4 { font-size: 14px; margin-bottom: 2px; }
+        .user-details p { font-size: 12px; opacity: 0.8; }
+        .logout-btn { width: 100%; padding: 10px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+        .main-content { margin-left: 260px; flex: 1; padding: 30px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 20px 30px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header h1 { font-size: 1.8rem; color: #333; }
+
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: translateY(-2px); }
+        .btn-success { background: #4caf50; color: white; }
+        .btn-success:hover { background: #388e3c; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-danger:hover { background: #d32f2f; }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-warning:hover { background: #f57c00; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        .content-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; padding: 12px; text-align: left; font-weight: 600; color: #333; font-size: 14px; }
+        td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+        tr:hover { background: #f8f9fa; }
+
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-admin { background: rgba(102,126,234,0.1); color: #667eea; }
+        .badge-security { background: rgba(255,152,0,0.1); color: #ff9800; }
+        .badge-receptionist { background: rgba(76,175,80,0.1); color: #4caf50; }
+        .badge-active { background: rgba(76,175,80,0.1); color: #4caf50; }
+        .badge-inactive { background: rgba(244,67,54,0.1); color: #f44336; }
+
+        .actions { display: flex; gap: 5px; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+        .modal-title { font-size: 1.5rem; font-weight: 600; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
+        .close-btn:hover { color: #333; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; color: #333; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
+        .alert-error { background: #fee; color: #c33; border: 1px solid #fcc; }
+        .alert-success { background: #efe; color: #3c3; border: 1px solid #cfc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="logo">VMS Dashboard</div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="dashboard.html" class="nav-link">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="checkin.html" class="nav-link">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+                        <span>Check-In</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="checkout.html" class="nav-link">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/></svg>
+                        <span>Check-Out</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="visitors.html" class="nav-link">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+                        <span>Visitors</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="users.html" class="nav-link active">
+                        <svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/></svg>
+                        <span>Users</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="user-profile">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div class="user-details">
+                        <h4 id="userName">Loading...</h4>
+                        <p id="userRole">Role</p>
+                    </div>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="header">
+                <h1>User Management</h1>
+                <button class="btn btn-primary" onclick="showCreateModal()">+ Add New User</button>
+            </div>
+
+            <div class="content-card">
+                <div id="loadingState" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading users...</p>
+                </div>
+
+                <div id="tableContainer" style="display: none;">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Full Name</th>
+                                    <th>Role</th>
+                                    <th>Contact</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New User</h2>
+                <button class="close-btn" onclick="closeModal('userModal')">&times;</button>
+            </div>
+            <div id="modalAlert" class="alert" style="display: none;"></div>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label>Username <span style="color: red;">*</span></label>
+                    <input type="text" id="username" required minlength="3">
+                </div>
+                <div class="form-group">
+                    <label>Full Name <span style="color: red;">*</span></label>
+                    <input type="text" id="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label>Role <span style="color: red;">*</span></label>
+                    <select id="role" required>
+                        <option value="">Select Role</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Security">Security</option>
+                        <option value="Receptionist">Receptionist</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Contact Number <span style="color: red;">*</span></label>
+                    <input type="tel" id="contactNo" pattern="[0-9]{10}" required>
+                </div>
+                <div class="form-group">
+                    <label>Email <span style="color: red;">*</span></label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group" id="passwordGroup">
+                    <label>Password <span style="color: red;">*</span></label>
+                    <input type="password" id="password" minlength="6">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn" style="background: #f0f0f0; color: #333;" onclick="closeModal('userModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Change Password</h2>
+                <button class="close-btn" onclick="closeModal('passwordModal')">&times;</button>
+            </div>
+            <div id="passwordAlert" class="alert" style="display: none;"></div>
+            <form id="passwordForm">
+                <input type="hidden" id="passwordUserId">
+                <div class="form-group">
+                    <label>New Password <span style="color: red;">*</span></label>
+                    <input type="password" id="newPassword" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password <span style="color: red;">*</span></label>
+                    <input type="password" id="confirmPassword" minlength="6" required>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn" style="background: #f0f0f0; color: #333;" onclick="closeModal('passwordModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        function checkAuth() {
+            if (!token || user.Role !== 'Admin') { 
+                alert('Access Denied: Admin only');
+                window.location.href = 'dashboard.html'; 
+                return false; 
+            }
+            return true;
+        }
+
+        async function apiCall(endpoint, options = {}) {
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...options,
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...options.headers }
+            });
+            if (response.status === 401) { window.location.href = 'login.html'; return null; }
+            return response.json();
+        }
+
+        function loadUserProfile() {
+            document.getElementById('userName').textContent = user.Full_Name;
+            document.getElementById('userRole').textContent = user.Role;
+            document.getElementById('userAvatar').textContent = user.Full_Name.charAt(0).toUpperCase();
+        }
+
+        async function loadUsers() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+
+            const data = await apiCall('/users');
+            
+            if (data && data.success) {
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = data.data.map(u => `
+                    <tr>
+                        <td><strong>${u.Username}</strong></td>
+                        <td>${u.Full_Name}</td>
+                        <td><span class="badge badge-${u.Role.toLowerCase()}">${u.Role}</span></td>
+                        <td>${u.Contact_No}</td>
+                        <td>${u.Email}</td>
+                        <td><span class="badge badge-${u.Is_Active ? 'active' : 'inactive'}">${u.Is_Active ? 'Active' : 'Inactive'}</span></td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn btn-sm btn-primary" onclick="editUser(${u.User_ID})">Edit</button>
+                                <button class="btn btn-sm btn-warning" onclick="showPasswordModal(${u.User_ID})">Password</button>
+                                <button class="btn btn-sm ${u.Is_Active ? 'btn-danger' : 'btn-success'}" onclick="toggleActive(${u.User_ID}, ${u.Is_Active})">${u.Is_Active ? 'Deactivate' : 'Activate'}</button>
+                                ${u.User_ID !== user.User_ID ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${u.User_ID})">Delete</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('tableContainer').style.display = 'block';
+            }
+        }
+
+        function showCreateModal() {
+            document.getElementById('modalTitle').textContent = 'Add New User';
+            document.getElementById('userId').value = '';
+            document.getElementById('userForm').reset();
+            document.getElementById('passwordGroup').style.display = 'block';
+            document.getElementById('password').required = true;
+            document.getElementById('submitBtn').textContent = 'Create User';
+            document.getElementById('userModal').classList.add('show');
+        }
+
+        async function editUser(userId) {
+            const data = await apiCall(`/users/${userId}`);
+            
+            if (data && data.success) {
+                const u = data.data;
+                document.getElementById('modalTitle').textContent = 'Edit User';
+                document.getElementById('userId').value = u.User_ID;
+                document.getElementById('username').value = u.Username;
+                document.getElementById('fullName').value = u.Full_Name;
+                document.getElementById('role').value = u.Role;
+                document.getElementById('contactNo').value = u.Contact_No;
+                document.getElementById('email').value = u.Email;
+                document.getElementById('passwordGroup').style.display = 'none';
+                document.getElementById('password').required = false;
+                document.getElementById('submitBtn').textContent = 'Update User';
+                document.getElementById('userModal').classList.add('show');
+            }
+        }
+
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const formData = {
+                username: document.getElementById('username').value,
+                full_name: document.getElementById('fullName').value,
+                role: document.getElementById('role').value,
+                contact_no: document.getElementById('contactNo').value,
+                email: document.getElementById('email').value
+            };
+
+            if (!userId) formData.password = document.getElementById('password').value;
+
+            const endpoint = userId ? `/users/${userId}` : '/users';
+            const method = userId ? 'PUT' : 'POST';
+            
+            const data = await apiCall(endpoint, { method, body: JSON.stringify(formData) });
+            
+            if (data && data.success) {
+                alert(data.message);
+                closeModal('userModal');
+                loadUsers();
+            } else {
+                showModalAlert('modalAlert', data?.message || 'Operation failed', 'error');
+            }
+        });
+
+        function showPasswordModal(userId) {
+            document.getElementById('passwordUserId').value = userId;
+            document.getElementById('passwordForm').reset();
+            document.getElementById('passwordModal').classList.add('show');
+        }
+
+        document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userId = document.getElementById('passwordUserId').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (newPassword !== confirmPassword) {
+                showModalAlert('passwordAlert', 'Passwords do not match', 'error');
+                return;
+            }
+
+            const data = await apiCall(`/users/${userId}/change-password`, {
+                method: 'PUT',
+                body: JSON.stringify({ new_password: newPassword })
+            });
+            
+            if (data && data.success) {
+                alert('Password changed successfully');
+                closeModal('passwordModal');
+            } else {
+                showModalAlert('passwordAlert', data?.message || 'Failed to change password', 'error');
+            }
+        });
+
+        async function toggleActive(userId, isActive) {
+            if (!confirm(`Are you sure you want to ${isActive ? 'deactivate' : 'activate'} this user?`)) return;
+            
+            const data = await apiCall(`/users/${userId}/toggle-active`, { method: 'PUT' });
+            
+            if (data && data.success) {
+                alert(data.message);
+                loadUsers();
+            } else {
+                alert(data?.message || 'Operation failed');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+            
+            const data = await apiCall(`/users/${userId}`, { method: 'DELETE' });
+            
+            if (data && data.success) {
+                alert('User deleted successfully');
+                loadUsers();
+            } else {
+                alert(data?.message || 'Failed to delete user');
+            }
+        }
+
+        function showModalAlert(alertId, message, type) {
+            const alert = document.getElementById(alertId);
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 5000);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                loadUserProfile();
+                loadUsers();
+            }
+        });
+    </script>
+</body>
+</html>
