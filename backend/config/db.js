@@ -2,17 +2,14 @@
 // FILE: config/db.js (PostgreSQL Configuration)
 // ============================================
 const { Pool } = require('pg');
-const dotenv = require('dotenv');
-
-dotenv.config();
 
 // Create PostgreSQL connection pool using DATABASE_URL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: { rejectUnauthorized: false },
   max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000,
 });
 
 // Test database connection
@@ -23,9 +20,6 @@ pool.connect()
   })
   .catch(err => {
     console.error('Error connecting to database:', err.message);
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
-    }
   });
 
 // Wrapper to match mysql2 destructuring pattern: const [rows] = await db.query(...)

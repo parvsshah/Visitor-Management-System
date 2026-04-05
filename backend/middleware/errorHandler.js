@@ -5,15 +5,16 @@
 const errorHandler = (err, req, res, next) => {
   console.error('Error:', err);
 
-  // MySQL errors
-  if (err.code === 'ER_DUP_ENTRY') {
+  // PostgreSQL duplicate key error
+  if (err.code === '23505') {
     return res.status(400).json({
       success: false,
       message: 'Duplicate entry - record already exists'
     });
   }
 
-  if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+  // PostgreSQL foreign key violation
+  if (err.code === '23503') {
     return res.status(400).json({
       success: false,
       message: 'Referenced record does not exist'

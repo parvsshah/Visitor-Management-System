@@ -96,11 +96,15 @@ BCRYPT_ROUNDS=10
 // ============================================
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
+const path = require('path');
 const { errorHandler } = require('./middleware/errorHandler');
 
-// Load environment variables
-dotenv.config();
+// Load environment variables (safe for Vercel where .env doesn't exist)
+try {
+  require('dotenv').config({ path: path.join(__dirname, '.env') });
+} catch (e) {
+  // dotenv not required on Vercel — env vars set in dashboard
+}
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -132,12 +136,26 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
+// Serve frontend static files
+const frontendPath = path.join(__dirname, '..', 'frontend');
+app.use(express.static(frontendPath));
+
+// Root route → login page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'login.html'));
+});
+
+// API 404 handler
+app.use('/api', (req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: 'API route not found'
   });
+});
+
+// Fallback: serve login for unknown routes (SPA-like behavior)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'login.html'));
 });
 
 // Error handler (must be last)
