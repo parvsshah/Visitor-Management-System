@@ -26,7 +26,7 @@ exports.getAllSessions = async (req, res, next) => {
         vs.Host_Name, vs.Host_Department, vs.Visit_Purpose,
         vs.CheckIn_Time, vs.CheckOut_Time, vs.Expected_CheckOut_Time,
         vs.Visit_Status, vs.Number_Of_Visitors, vs.Remarks,
-        TIMESTAMPDIFF(MINUTE, vs.CheckIn_Time, IFNULL(vs.CheckOut_Time, NOW())) as Duration_Minutes
+        EXTRACT(EPOCH FROM (COALESCE(vs.CheckOut_Time, NOW()) - vs.CheckIn_Time))/60 as Duration_Minutes
       FROM VISIT_SESSION vs
       JOIN VISITOR v ON vs.Visitor_ID = v.Visitor_ID
       WHERE 1=1
@@ -91,12 +91,12 @@ exports.getAllSessions = async (req, res, next) => {
 // @access  Private (All roles)
 exports.getActiveVisitors = async (req, res, next) => {
   try {
-    const [visitors] = await db.query('CALL sp_get_active_visitors()');
+    const [visitors] = await db.query('SELECT * FROM sp_get_active_visitors()');
 
     res.status(200).json({
       success: true,
-      count: visitors[0].length,
-      data: visitors[0]
+      count: visitors.length,
+      data: visitors
     });
   } catch (error) {
     next(error);
@@ -113,7 +113,7 @@ exports.getSessionById = async (req, res, next) => {
     const [session] = await db.query(
       `SELECT 
         vs.*, v.Full_Name, v.Contact_No, v.Email, v.Company_Name,
-        TIMESTAMPDIFF(MINUTE, vs.CheckIn_Time, IFNULL(vs.CheckOut_Time, NOW())) as Duration_Minutes
+        EXTRACT(EPOCH FROM (COALESCE(vs.CheckOut_Time, NOW()) - vs.CheckIn_Time))/60 as Duration_Minutes
        FROM VISIT_SESSION vs
        JOIN VISITOR v ON vs.Visitor_ID = v.Visitor_ID
        WHERE vs.Session_ID = ?`,
@@ -186,9 +186,9 @@ exports.checkInVisitor = async (req, res, next) => {
       });
     }
 
-    // Call stored procedure for registration and check-in
+    // Call stored function for registration and check-in
     const [result] = await db.query(
-      `CALL sp_register_and_checkin(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @session_id, @visitor_id)`,
+      `SELECT * FROM sp_register_and_checkin(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         full_name, gender, contact_no, email, id_type, id_number, company_name,
         host_name, host_department, host_contact, visit_purpose,
@@ -196,10 +196,7 @@ exports.checkInVisitor = async (req, res, next) => {
       ]
     );
 
-    // Get the output parameters
-    const [output] = await db.query('SELECT @session_id as session_id, @visitor_id as visitor_id');
-    const sessionId = output[0].session_id;
-    const visitorId = output[0].visitor_id;
+    const sessionId = result[0].session_id;
 
     // Fetch complete session details
     const [sessionDetails] = await db.query(
@@ -216,7 +213,7 @@ exports.checkInVisitor = async (req, res, next) => {
       data: sessionDetails[0]
     });
   } catch (error) {
-    if (error.sqlMessage && error.sqlMessage.includes('blacklisted')) {
+    if (error.message && error.message.includes('blacklisted')) {
       return res.status(403).json({
         success: false,
         message: 'This visitor is blacklisted and cannot check in'
@@ -263,7 +260,7 @@ exports.quickCheckIn = async (req, res, next) => {
 
     // Check if visitor is already checked in
     const [activeSession] = await db.query(
-      'SELECT Session_ID FROM VISIT_SESSION WHERE Visitor_ID = ? AND Visit_Status = "Checked-In"',
+      `SELECT Session_ID FROM VISIT_SESSION WHERE Visitor_ID = ? AND Visit_Status = 'Checked-In'`,
       [visitor_id]
     );
 
@@ -276,11 +273,12 @@ exports.quickCheckIn = async (req, res, next) => {
     }
 
     // Create new session
-    const [result] = await db.query(
+    const [insertResult] = await db.query(
       `INSERT INTO VISIT_SESSION 
        (Visitor_ID, Host_Name, Host_Department, Host_Contact, Visit_Purpose, 
         Expected_CheckOut_Time, Number_Of_Visitors, Visit_Status, Checked_In_By)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'Checked-In', ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'Checked-In', ?)
+       RETURNING Session_ID`,
       [visitor_id, host_name, host_department, host_contact, visit_purpose,
        expected_checkout_time, number_of_visitors, req.user.id]
     );
@@ -290,7 +288,7 @@ exports.quickCheckIn = async (req, res, next) => {
        FROM VISIT_SESSION vs
        JOIN VISITOR v ON vs.Visitor_ID = v.Visitor_ID
        WHERE vs.Session_ID = ?`,
-      [result.insertId]
+      [insertResult[0].session_id]
     );
 
     res.status(201).json({
@@ -331,16 +329,16 @@ exports.checkOutVisitor = async (req, res, next) => {
       });
     }
 
-    // Call stored procedure
+    // Call stored function
     await db.query(
-      'CALL sp_checkout_visitor(?, ?, ?)',
+      'SELECT sp_checkout_visitor(?, ?, ?)',
       [id, req.user.id, remarks]
     );
 
     // Get updated session details
     const [updatedSession] = await db.query(
       `SELECT vs.*, v.Full_Name, v.Contact_No,
-       TIMESTAMPDIFF(MINUTE, vs.CheckIn_Time, vs.CheckOut_Time) as Duration_Minutes
+       EXTRACT(EPOCH FROM (vs.CheckOut_Time - vs.CheckIn_Time))/60 as Duration_Minutes
        FROM VISIT_SESSION vs
        JOIN VISITOR v ON vs.Visitor_ID = v.Visitor_ID
        WHERE vs.Session_ID = ?`,
@@ -470,7 +468,7 @@ exports.getOverstayVisitors = async (req, res, next) => {
   try {
     const [visitors] = await db.query(
       `SELECT vs.*, v.Full_Name, v.Contact_No,
-       TIMESTAMPDIFF(MINUTE, vs.Expected_CheckOut_Time, NOW()) as Overstay_Minutes
+       EXTRACT(EPOCH FROM (NOW() - vs.Expected_CheckOut_Time))/60 as Overstay_Minutes
        FROM VISIT_SESSION vs
        JOIN VISITOR v ON vs.Visitor_ID = v.Visitor_ID
        WHERE vs.Visit_Status = 'Overstay'

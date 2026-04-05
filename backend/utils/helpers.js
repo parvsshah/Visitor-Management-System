@@ -17,8 +17,8 @@ const generateToken = (user) => {
   );
 };
 
-// Format date for MySQL
-const formatDateForMySQL = (date) => {
+// Format date for database
+const formatDate = (date) => {
   return date.toISOString().slice(0, 19).replace('T', ' ');
 };
 
@@ -30,6 +30,6 @@ const calculateDuration = (startDate, endDate) => {
 
 module.exports = {
   generateToken,
-  formatDateForMySQL,
+  formatDate,
   calculateDuration
 };

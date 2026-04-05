@@ -1,35 +1,41 @@
 // ============================================
-// FILE: config/db.js (Database Configuration)
+// FILE: config/db.js (PostgreSQL Configuration)
 // ============================================
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-// Create connection pool
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+// Create PostgreSQL connection pool using DATABASE_URL
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
-
-// Promisify for async/await usage
-const promisePool = pool.promise();
 
 // Test database connection
-pool.getConnection((err, connection) => {
-  if (err) {
+pool.connect()
+  .then(client => {
+    console.log('✓ PostgreSQL Database connected successfully');
+    client.release();
+  })
+  .catch(err => {
     console.error('Error connecting to database:', err.message);
-    process.exit(1);
-  }
-  console.log('✓ MySQL Database connected successfully');
-  connection.release();
-});
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+  });
 
-module.exports = promisePool;
+// Wrapper to match mysql2 destructuring pattern: const [rows] = await db.query(...)
+// PostgreSQL pg returns { rows, rowCount }, mysql2 returns [rows, fields]
+const query = async (text, params) => {
+  // Convert ? placeholders to $1, $2, etc. for pg
+  let paramIndex = 0;
+  const pgText = text.replace(/\?/g, () => `$${++paramIndex}`);
+  const result = await pool.query(pgText, params);
+  return [result.rows, result.fields];
+};
 
+module.exports = { query, pool };

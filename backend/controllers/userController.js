@@ -118,20 +118,12 @@ exports.createUser = async (req, res, next) => {
     const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_ROUNDS) || 10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    const [result] = await db.query(
+    const [newUser] = await db.query(
       `INSERT INTO USER_ACCOUNT 
        (Username, Full_Name, Role, Contact_No, Email, Password_Hash)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?)
+       RETURNING User_ID, Username, Full_Name, Role, Contact_No, Email, Is_Active, Created_At`,
       [username, full_name, role, contact_no, email, password_hash]
-    );
-
-    const [newUser] = await db.query(
-      `SELECT 
-        User_ID, Username, Full_Name, Role, Contact_No, 
-        Email, Is_Active, Created_At
-       FROM USER_ACCOUNT 
-       WHERE User_ID = ?`,
-      [result.insertId]
     );
 
     res.status(201).json({

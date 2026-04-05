@@ -51,17 +51,12 @@ exports.register = async (req, res, next) => {
     const [result] = await db.query(
       `INSERT INTO USER_ACCOUNT 
        (Username, Full_Name, Role, Contact_No, Email, Password_Hash)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?)
+       RETURNING User_ID, Username, Full_Name, Role, Contact_No, Email, Is_Active, Created_At`,
       [username, full_name, role, contact_no, email, password_hash]
     );
 
-    // Get created user (without password)
-    const [newUser] = await db.query(
-      `SELECT User_ID, Username, Full_Name, Role, Contact_No, Email, Is_Active, Created_At
-       FROM USER_ACCOUNT 
-       WHERE User_ID = ?`,
-      [result.insertId]
-    );
+    const newUser = [result[0]];
 
     // Generate token
     const token = generateToken(newUser[0]);

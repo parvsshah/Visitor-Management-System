@@ -120,16 +120,12 @@ exports.createVisitor = async (req, res, next) => {
     }
 
     // Insert
-    const [insert] = await db.query(
+    const [newVisitor] = await db.query(
       `INSERT INTO VISITOR 
       (Full_Name, Gender, Contact_No, Email, ID_Type, ID_Number, Company_Name, Address)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      RETURNING *`,
       [full_name, gender, contact_no, email, id_type, id_number, company_name, address]
-    );
-
-    const [newVisitor] = await db.query(
-      'SELECT * FROM VISITOR WHERE Visitor_ID = ?',
-      [insert.insertId]
     );
 
     res.status(201).json({
@@ -265,8 +261,8 @@ exports.addToBlacklist = async (req, res, next) => {
     if (visitor[0].Is_Blacklisted)
       return res.status(400).json({ success: false, message: 'Already blacklisted' });
 
-    // Using stored procedure
-    await db.query('CALL sp_add_to_blacklist(?, ?, ?)', [
+    // Using stored function
+    await db.query('SELECT sp_add_to_blacklist(?, ?, ?)', [
       id,
       reason,
       req.user.id, // Admin/Security ID
@@ -321,13 +317,13 @@ exports.removeFromBlacklist = async (req, res, next) => {
 // =====================================================
 exports.getVisitorHistory = async (req, res, next) => {
   try {
-    const [history] = await db.query(`CALL sp_get_visitor_history(?)`, [
+    const [history] = await db.query(`SELECT * FROM sp_get_visitor_history(?)`, [
       req.params.id,
     ]);
 
     res.status(200).json({
       success: true,
-      data: history[0],
+      data: history,
     });
   } catch (error) {
     next(error);

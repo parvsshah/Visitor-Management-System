@@ -15,12 +15,12 @@ exports.getDashboardStats = async (req, res, next) => {
 
     // Active visitors count
     const [activeVisitors] = await db.query(
-      'SELECT COUNT(*) as count FROM VISIT_SESSION WHERE Visit_Status = "Checked-In"'
+      `SELECT COUNT(*) as count FROM VISIT_SESSION WHERE Visit_Status = 'Checked-In'`
     );
 
     // Overstay visitors count
     const [overstay] = await db.query(
-      'SELECT COUNT(*) as count FROM VISIT_SESSION WHERE Visit_Status = "Overstay"'
+      `SELECT COUNT(*) as count FROM VISIT_SESSION WHERE Visit_Status = 'Overstay'`
     );
 
     // Total visitors (all time)
@@ -36,22 +36,21 @@ exports.getDashboardStats = async (req, res, next) => {
     // This week's visits
     const [weekVisits] = await db.query(
       `SELECT COUNT(*) as count FROM VISIT_SESSION 
-       WHERE YEARWEEK(CheckIn_Time, 1) = YEARWEEK(CURDATE(), 1)`
+       WHERE DATE_TRUNC('week', CheckIn_Time) = DATE_TRUNC('week', CURRENT_DATE)`
     );
 
     // This month's visits
     const [monthVisits] = await db.query(
       `SELECT COUNT(*) as count FROM VISIT_SESSION 
-       WHERE YEAR(CheckIn_Time) = YEAR(CURDATE()) 
-       AND MONTH(CheckIn_Time) = MONTH(CURDATE())`
+       WHERE DATE_TRUNC('month', CheckIn_Time) = DATE_TRUNC('month', CURRENT_DATE)`
     );
 
     // Average visit duration (in minutes)
     const [avgDuration] = await db.query(
-      `SELECT AVG(TIMESTAMPDIFF(MINUTE, CheckIn_Time, CheckOut_Time)) as avg_duration
+      `SELECT AVG(EXTRACT(EPOCH FROM (CheckOut_Time - CheckIn_Time))/60) as avg_duration
        FROM VISIT_SESSION 
        WHERE CheckOut_Time IS NOT NULL 
-       AND DATE(CheckIn_Time) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)`
+       AND DATE(CheckIn_Time) >= CURRENT_DATE - INTERVAL '30 days'`
     );
 
     res.status(200).json({
@@ -118,11 +117,11 @@ exports.getHourlyDistribution = async (req, res, next) => {
 
     const [distribution] = await db.query(
       `SELECT 
-        HOUR(CheckIn_Time) as hour,
+        EXTRACT(HOUR FROM CheckIn_Time)::int as hour,
         COUNT(*) as visits
        FROM VISIT_SESSION
        WHERE DATE(CheckIn_Time) = ?
-       GROUP BY HOUR(CheckIn_Time)
+       GROUP BY EXTRACT(HOUR FROM CheckIn_Time)
        ORDER BY hour`,
       [date]
     );
@@ -157,11 +156,11 @@ exports.getTopVisitors = async (req, res, next) => {
         v.Visitor_ID, v.Full_Name, v.Contact_No, v.Company_Name,
         COUNT(vs.Session_ID) as visit_count,
         MAX(vs.CheckIn_Time) as last_visit,
-        AVG(TIMESTAMPDIFF(MINUTE, vs.CheckIn_Time, vs.CheckOut_Time)) as avg_duration
+        AVG(EXTRACT(EPOCH FROM (vs.CheckOut_Time - vs.CheckIn_Time))/60) as avg_duration
        FROM VISITOR v
        JOIN VISIT_SESSION vs ON v.Visitor_ID = vs.Visitor_ID
-       WHERE vs.CheckIn_Time >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-       GROUP BY v.Visitor_ID
+       WHERE vs.CheckIn_Time >= CURRENT_DATE - INTERVAL '1 day' * ?
+       GROUP BY v.Visitor_ID, v.Full_Name, v.Contact_No, v.Company_Name
        ORDER BY visit_count DESC
        LIMIT ?`,
       [parseInt(days), parseInt(limit)]
@@ -188,9 +187,9 @@ exports.getVisitPurposes = async (req, res, next) => {
         Visit_Purpose,
         COUNT(*) as count,
         ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM VISIT_SESSION 
-         WHERE CheckIn_Time >= DATE_SUB(CURDATE(), INTERVAL ? DAY))), 2) as percentage
+         WHERE CheckIn_Time >= CURRENT_DATE - INTERVAL '1 day' * ?)), 2) as percentage
        FROM VISIT_SESSION
-       WHERE CheckIn_Time >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+       WHERE CheckIn_Time >= CURRENT_DATE - INTERVAL '1 day' * ?
        GROUP BY Visit_Purpose
        ORDER BY count DESC`,
       [parseInt(days), parseInt(days)]
@@ -218,7 +217,7 @@ exports.getDepartmentWiseVisits = async (req, res, next) => {
         COUNT(*) as visit_count,
         COUNT(DISTINCT Visitor_ID) as unique_visitors
        FROM VISIT_SESSION
-       WHERE CheckIn_Time >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+       WHERE CheckIn_Time >= CURRENT_DATE - INTERVAL '1 day' * ?
        AND Host_Department IS NOT NULL
        GROUP BY Host_Department
        ORDER BY visit_count DESC`,
@@ -294,9 +293,9 @@ exports.getOfficerPerformance = async (req, res, next) => {
         COUNT(DISTINCT DATE(vl.Timestamp)) as days_active
        FROM SECURITY_OFFICER so
        LEFT JOIN VERIFICATION_LOG vl ON so.Officer_ID = vl.Officer_ID
-         AND vl.Timestamp >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+         AND vl.Timestamp >= CURRENT_DATE - INTERVAL '1 day' * ?
        WHERE so.Is_Active = TRUE
-       GROUP BY so.Officer_ID
+       GROUP BY so.Officer_ID, so.Name, so.Shift
        ORDER BY total_verifications DESC`,
       [parseInt(days)]
     );
@@ -326,9 +325,9 @@ exports.getUserActivity = async (req, res, next) => {
                  WHEN vs.Checked_Out_By = ua.User_ID THEN vs.CheckOut_Time END) as last_activity
        FROM USER_ACCOUNT ua
        LEFT JOIN VISIT_SESSION vs ON (ua.User_ID = vs.Checked_In_By OR ua.User_ID = vs.Checked_Out_By)
-         AND vs.CheckIn_Time >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+         AND vs.CheckIn_Time >= CURRENT_DATE - INTERVAL '1 day' * ?
        WHERE ua.Is_Active = TRUE
-       GROUP BY ua.User_ID
+       GROUP BY ua.User_ID, ua.Username, ua.Full_Name, ua.Role
        ORDER BY last_activity DESC`,
       [parseInt(days)]
     );
@@ -353,11 +352,11 @@ exports.getOverstayReport = async (req, res, next) => {
       `SELECT 
         DATE(vs.CheckIn_Time) as date,
         COUNT(*) as overstay_count,
-        AVG(TIMESTAMPDIFF(MINUTE, vs.Expected_CheckOut_Time, 
-          IFNULL(vs.CheckOut_Time, NOW()))) as avg_overstay_minutes
+        AVG(EXTRACT(EPOCH FROM (
+          COALESCE(vs.CheckOut_Time, NOW()) - vs.Expected_CheckOut_Time))/60) as avg_overstay_minutes
        FROM VISIT_SESSION vs
-       WHERE vs.CheckIn_Time >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-       AND vs.Expected_CheckOut_Time < IFNULL(vs.CheckOut_Time, NOW())
+       WHERE vs.CheckIn_Time >= CURRENT_DATE - INTERVAL '1 day' * ?
+       AND vs.Expected_CheckOut_Time < COALESCE(vs.CheckOut_Time, NOW())
        GROUP BY DATE(vs.CheckIn_Time)
        ORDER BY date DESC`,
       [parseInt(days)]
@@ -368,7 +367,7 @@ exports.getOverstayReport = async (req, res, next) => {
       `SELECT 
         v.Full_Name, v.Contact_No, vs.Host_Name, vs.Visit_Purpose,
         vs.Expected_CheckOut_Time,
-        TIMESTAMPDIFF(MINUTE, vs.Expected_CheckOut_Time, NOW()) as overstay_minutes
+       EXTRACT(EPOCH FROM (NOW() - vs.Expected_CheckOut_Time))/60 as overstay_minutes
        FROM VISIT_SESSION vs
        JOIN VISITOR v ON vs.Visitor_ID = v.Visitor_ID
        WHERE vs.Visit_Status = 'Overstay'
@@ -414,7 +413,7 @@ exports.exportVisits = async (req, res, next) => {
         vs.CheckIn_Time,
         vs.CheckOut_Time,
         vs.Visit_Status,
-        TIMESTAMPDIFF(MINUTE, vs.CheckIn_Time, IFNULL(vs.CheckOut_Time, NOW())) as Duration_Minutes
+        EXTRACT(EPOCH FROM (COALESCE(vs.CheckOut_Time, NOW()) - vs.CheckIn_Time))/60 as Duration_Minutes
        FROM VISIT_SESSION vs
        JOIN VISITOR v ON vs.Visitor_ID = v.Visitor_ID
        WHERE DATE(vs.CheckIn_Time) BETWEEN ? AND ?
@@ -449,7 +448,7 @@ exports.getBlacklistReport = async (req, res, next) => {
         SUM(CASE WHEN bl.Action = 'Added' THEN 1 ELSE 0 END) as additions,
         SUM(CASE WHEN bl.Action = 'Removed' THEN 1 ELSE 0 END) as removals
        FROM BLACKLIST_LOG bl
-       WHERE bl.Action_Date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+       WHERE bl.Action_Date >= CURRENT_DATE - INTERVAL '30 days'
        GROUP BY DATE(bl.Action_Date)
        ORDER BY date DESC`
     );
@@ -581,7 +580,7 @@ exports.getAllVisitSessions = async (req, res, next) => {
         vs.Visit_Status,
         vs.Number_Of_Visitors,
         vs.Remarks,
-        TIMESTAMPDIFF(MINUTE, vs.CheckIn_Time, IFNULL(vs.CheckOut_Time, NOW())) as Duration_Minutes,
+        EXTRACT(EPOCH FROM (COALESCE(vs.CheckOut_Time, NOW()) - vs.CheckIn_Time))/60 as Duration_Minutes,
         u1.Full_Name as Checked_In_By_Name,
         u2.Full_Name as Checked_Out_By_Name
       FROM VISIT_SESSION vs
