@@ -140,9 +140,9 @@ app.get('/api/health', (req, res) => {
 const frontendPath = path.join(__dirname, '..', 'frontend');
 app.use(express.static(frontendPath));
 
-// Root route → login page
+// Root route → landing page
 app.get('/', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'login.html'));
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // API 404 handler
@@ -153,9 +153,9 @@ app.use('/api', (req, res) => {
   });
 });
 
-// Fallback: serve login for unknown routes (SPA-like behavior)
+// Fallback: serve landing page for unknown routes (SPA-like behavior)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'login.html'));
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // Error handler (must be last)

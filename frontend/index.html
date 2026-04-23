@@ -1,37 +1,442 @@
-<!-- frontend/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visitor Management System</title>
+    <title>Visitor Management System — Secure, Smart & Seamless</title>
+    <meta name="description" content="A comprehensive full-stack Visitor Management System with real-time tracking, role-based access, security verification, and detailed reporting.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --accent: #764ba2;
+            --bg-dark: #0f0f1a;
+            --bg-card: rgba(255,255,255,0.06);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --glow: rgba(102,126,234,0.35);
+        }
+
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 100px;
-            background-color: #f4f4f4;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
         }
-        h1 {
-            color: #333;
+
+        /* ── Animated background ── */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0;
+            background-image:
+                linear-gradient(rgba(102,126,234,.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(102,126,234,.07) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite;
         }
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
+        @keyframes gridMove { to { background-position: 60px 60px; } }
+
+        .bg-orb {
+            position: fixed; border-radius: 50%; filter: blur(100px); opacity: .25; z-index: 0;
+            animation: orbFloat 12s ease-in-out infinite alternate;
         }
-        a:hover {
-            background-color: #0056b3;
+        .bg-orb--1 { width: 500px; height: 500px; background: var(--primary); top: -10%; left: -5%; }
+        .bg-orb--2 { width: 400px; height: 400px; background: var(--accent); bottom: -10%; right: -5%; animation-delay: -6s; }
+
+        @keyframes orbFloat { to { transform: translate(40px, 30px) scale(1.1); } }
+
+        /* ── Utility ── */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+        .section { padding: 100px 0; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+            background: rgba(102,126,234,.15); color: var(--primary); border: 1px solid rgba(102,126,234,.25);
+        }
+        .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
+
+        /* ── Nav ── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 0;
+            background: rgba(15,15,26,.7); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            transition: padding .3s;
+        }
+        nav.scrolled { padding: 10px 0; }
+        .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+        .nav-logo { font-size: 1.35rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
+        .nav-links a:hover { color: #fff; }
+        .nav-cta {
+            padding: 10px 24px; border-radius: 10px; font-weight: 600; font-size: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff; text-decoration: none; border: none; cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--glow); }
+
+        /* ── Hero ── */
+        .hero { padding: 180px 0 120px; text-align: center; }
+        .hero h1 {
+            font-size: clamp(2.5rem, 5.5vw, 4.5rem); font-weight: 900; line-height: 1.1;
+            background: linear-gradient(135deg, #fff 30%, var(--primary) 70%, var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin: 20px 0;
+        }
+        .hero p { font-size: 1.15rem; color: var(--text-muted); max-width: 620px; margin: 0 auto 40px; }
+        .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn-hero {
+            padding: 14px 32px; border-radius: 12px; font-size: 15px; font-weight: 700;
+            text-decoration: none; transition: all .3s; cursor: pointer; border: none;
+        }
+        .btn-hero--primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff; box-shadow: 0 4px 25px var(--glow);
+        }
+        .btn-hero--primary:hover { transform: translateY(-3px); box-shadow: 0 12px 40px var(--glow); }
+        .btn-hero--outline {
+            background: transparent; color: var(--text); border: 2px solid rgba(255,255,255,.15);
+        }
+        .btn-hero--outline:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* ── Screenshot showcase ── */
+        .showcase { margin-top: 60px; perspective: 1200px; }
+        .showcase img {
+            width: 90%; max-width: 900px; border-radius: 16px;
+            border: 1px solid rgba(255,255,255,.08);
+            box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 60px var(--glow);
+            transform: rotateX(4deg); transition: transform .5s;
+        }
+        .showcase img:hover { transform: rotateX(0deg) scale(1.02); }
+
+        /* ── Features ── */
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px; margin-top: 60px;
+        }
+        .feature-card {
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,.06);
+            border-radius: 16px; padding: 32px; transition: all .3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-6px); border-color: rgba(102,126,234,.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,.3);
+        }
+        .feature-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, rgba(102,126,234,.2), rgba(118,75,162,.2));
+            margin-bottom: 20px; font-size: 22px;
+        }
+        .feature-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; color: #fff; }
+        .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+
+        /* ── Screenshots carousel ── */
+        .screenshots { text-align: center; }
+        .screenshots h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 16px; }
+        .screenshots p { color: var(--text-muted); margin-bottom: 50px; }
+        .screen-row { display: flex; gap: 24px; overflow-x: auto; padding: 20px 0; scroll-snap-type: x mandatory; }
+        .screen-row::-webkit-scrollbar { display: none; }
+        .screen-card {
+            min-width: 340px; flex-shrink: 0; scroll-snap-align: center;
+            border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,.08);
+            transition: transform .3s, box-shadow .3s;
+        }
+        .screen-card:hover { transform: scale(1.03); box-shadow: 0 20px 50px rgba(0,0,0,.4); }
+        .screen-card img { width: 100%; display: block; }
+        .screen-card .screen-label {
+            padding: 16px; background: var(--bg-card); text-align: center;
+            font-weight: 600; font-size: 14px;
+        }
+
+        /* ── Tech Stack ── */
+        .tech-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 50px; }
+        .tech-item {
+            padding: 16px 28px; border-radius: 12px; font-size: 14px; font-weight: 600;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,.06);
+            display: flex; align-items: center; gap: 10px; transition: all .3s;
+        }
+        .tech-item:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .tech-item span { font-size: 20px; }
+
+        /* ── RBAC Table ── */
+        .rbac-table { width: 100%; border-collapse: collapse; margin-top: 40px; font-size: 14px; }
+        .rbac-table th, .rbac-table td { padding: 14px 20px; text-align: left; border-bottom: 1px solid rgba(255,255,255,.06); }
+        .rbac-table th { color: var(--primary); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .5px; }
+        .rbac-table tr:hover td { background: rgba(102,126,234,.04); }
+
+        /* ── CTA Section ── */
+        .cta-section {
+            text-align: center; padding: 100px 0;
+            background: linear-gradient(135deg, rgba(102,126,234,.08), rgba(118,75,162,.08));
+            border-top: 1px solid rgba(255,255,255,.04);
+        }
+        .cta-section h2 { font-size: 2.5rem; font-weight: 900; margin-bottom: 16px; }
+        .cta-section p { color: var(--text-muted); margin-bottom: 36px; font-size: 1.1rem; }
+
+        /* ── Footer ── */
+        footer {
+            padding: 40px 0; text-align: center; font-size: 13px; color: var(--text-muted);
+            border-top: 1px solid rgba(255,255,255,.04);
+        }
+        footer a { color: var(--primary); text-decoration: none; }
+
+        /* ── Animations ── */
+        .fade-up { opacity: 0; transform: translateY(30px); transition: opacity .7s, transform .7s; }
+        .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero { padding: 140px 0 80px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .screen-card { min-width: 280px; }
+            .rbac-table { font-size: 12px; }
+            .rbac-table th, .rbac-table td { padding: 10px 12px; }
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to Visitor Management System</h1>
-    <p>Click below to go to the dashboard:</p>
-    <a href="dashboard.html">Go to Dashboard</a>
+    <div class="bg-grid"></div>
+    <div class="bg-orb bg-orb--1"></div>
+    <div class="bg-orb bg-orb--2"></div>
+
+    <!-- Navigation -->
+    <nav id="mainNav">
+        <div class="container nav-inner">
+            <div class="nav-logo">🛡️ VMS</div>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#screens">Screenshots</a></li>
+                <li><a href="#tech">Tech Stack</a></li>
+                <li><a href="#access">Access Control</a></li>
+            </ul>
+            <a href="login.html" class="nav-cta">Launch App →</a>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="badge">Full-Stack DBMS Project</div>
+            <h1>Visitor Management<br>System</h1>
+            <p>A secure, efficient, and comprehensive visitor tracking solution for modern facilities — built with Express.js, PostgreSQL, and a beautiful responsive UI.</p>
+            <div class="hero-buttons">
+                <a href="login.html" class="btn-hero btn-hero--primary">Open System →</a>
+                <a href="#features" class="btn-hero btn-hero--outline">Explore Features</a>
+            </div>
+            <div class="showcase fade-up">
+                <img src="assets/images/dashboard_preview.png" alt="VMS Dashboard Preview">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+        <div class="container">
+            <div style="text-align:center" class="fade-up">
+                <div class="badge">Core Capabilities</div>
+                <h2 style="font-size:2.2rem;font-weight:800;margin:16px 0 8px">Everything You Need</h2>
+                <p style="color:var(--text-muted);max-width:550px;margin:0 auto">Streamline visitor operations from check-in to check-out with a full suite of management tools.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">📋</div>
+                    <h3>Smart Check-In / Check-Out</h3>
+                    <p>Register new visitors or quickly check in returning ones. Auto-detects returning visitors with full visit history display.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">📊</div>
+                    <h3>Live Dashboard</h3>
+                    <p>Real-time stats for active visitors, today's visits, overstays, and blacklisted visitors with auto-refresh every 30 seconds.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Role-Based Access</h3>
+                    <p>Three distinct roles — Admin, Receptionist, and Security — each with tailored permissions and restricted page access.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">🚫</div>
+                    <h3>Blacklist Management</h3>
+                    <p>Flag and block suspicious visitors. Blacklisted visitors are automatically denied check-in with logged audit trails.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">🕐</div>
+                    <h3>Overstay Detection</h3>
+                    <p>Automatic status update via database triggers when visitors exceed their expected checkout time.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">📝</div>
+                    <h3>Reports & Logs</h3>
+                    <p>Verification logs, visit session reports with date/status filters, pagination, and complete audit trail visibility.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">🚗</div>
+                    <h3>Vehicle Registration</h3>
+                    <p>Track visitor vehicles with parking slot assignment, vehicle type, and number plate recording.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">👥</div>
+                    <h3>User Management</h3>
+                    <p>Admin panel to create, edit, toggle, and manage system users with password management and profile controls.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Cloud Deployed</h3>
+                    <p>Deployed on Vercel with Neon PostgreSQL — serverless architecture with zero-config scaling.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots -->
+    <section class="section screenshots" id="screens">
+        <div class="container">
+            <div class="fade-up">
+                <div class="badge">Interface Gallery</div>
+                <h2>Beautiful, Functional UI</h2>
+                <p>Every screen is designed for efficiency and clarity.</p>
+            </div>
+            <div class="screen-row fade-up">
+                <div class="screen-card">
+                    <img src="assets/images/login_preview.png" alt="Login Page">
+                    <div class="screen-label">🔐 Login Page</div>
+                </div>
+                <div class="screen-card">
+                    <img src="assets/images/dashboard_preview.png" alt="Dashboard">
+                    <div class="screen-label">📊 Dashboard</div>
+                </div>
+                <div class="screen-card">
+                    <img src="assets/images/checkin_preview.png" alt="Check-In Form">
+                    <div class="screen-label">📋 Check-In Form</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Stack -->
+    <section class="section" id="tech">
+        <div class="container" style="text-align:center">
+            <div class="fade-up">
+                <div class="badge">Architecture</div>
+                <h2 style="font-size:2.2rem;font-weight:800;margin:16px 0 8px">Tech Stack</h2>
+                <p style="color:var(--text-muted)">Built with modern, battle-tested technologies.</p>
+            </div>
+            <div class="tech-grid fade-up">
+                <div class="tech-item"><span>🟢</span> Node.js</div>
+                <div class="tech-item"><span>⚡</span> Express.js</div>
+                <div class="tech-item"><span>🐘</span> PostgreSQL</div>
+                <div class="tech-item"><span>🔑</span> JWT Auth</div>
+                <div class="tech-item"><span>🔐</span> bcrypt.js</div>
+                <div class="tech-item"><span>🌐</span> REST API</div>
+                <div class="tech-item"><span>🎨</span> Vanilla CSS</div>
+                <div class="tech-item"><span>📄</span> HTML5 / JS</div>
+                <div class="tech-item"><span>▲</span> Vercel</div>
+                <div class="tech-item"><span>🐙</span> Neon DB</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RBAC -->
+    <section class="section" id="access">
+        <div class="container">
+            <div style="text-align:center" class="fade-up">
+                <div class="badge">Security Model</div>
+                <h2 style="font-size:2.2rem;font-weight:800;margin:16px 0 8px">Role-Based Access Control</h2>
+                <p style="color:var(--text-muted)">Fine-grained permissions ensure every user sees only what they need.</p>
+            </div>
+            <div class="fade-up" style="overflow-x:auto;margin-top:40px;background:var(--bg-card);border-radius:16px;border:1px solid rgba(255,255,255,.06);padding:8px;">
+                <table class="rbac-table">
+                    <thead>
+                        <tr><th>Capability</th><th>Admin</th><th>Receptionist</th><th>Security</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Dashboard</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                        <tr><td>Check-In Visitors</td><td>✅</td><td>✅</td><td>❌</td></tr>
+                        <tr><td>Check-Out Visitors</td><td>✅</td><td>✅</td><td>❌</td></tr>
+                        <tr><td>View Visitor List</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                        <tr><td>Edit / Delete Visitors</td><td>✅</td><td>✅ (edit)</td><td>❌</td></tr>
+                        <tr><td>Blacklist Management</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                        <tr><td>Reports & Logs</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                        <tr><td>User Management</td><td>✅</td><td>❌</td><td>❌</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Database Schema summary -->
+    <section class="section" style="padding-top:0">
+        <div class="container">
+            <div style="text-align:center" class="fade-up">
+                <div class="badge">Database Design</div>
+                <h2 style="font-size:2.2rem;font-weight:800;margin:16px 0 8px">8 Relational Tables</h2>
+                <p style="color:var(--text-muted);max-width:550px;margin:0 auto">Normalized schema with triggers, stored procedures, and views for data integrity.</p>
+            </div>
+            <div class="features-grid" style="margin-top:40px;">
+                <div class="feature-card fade-up">
+                    <h3>📦 Core Tables</h3>
+                    <p>USER_ACCOUNT · VISITOR · VISIT_SESSION · VEHICLE — manage the primary entities of the system.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <h3>📜 Audit & Logs</h3>
+                    <p>VERIFICATION_LOG · BLACKLIST_LOG · SYSTEM_SETTINGS — complete audit trail with automatic trigger-based logging.</p>
+                </div>
+                <div class="feature-card fade-up">
+                    <h3>⚙️ Automation</h3>
+                    <p>5 Triggers (auto check-in/out logging, overstay detection, blacklist tracking) + 4 Stored Procedures + 3 Views.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container fade-up">
+            <h2>Ready to Explore?</h2>
+            <p>Log in with demo credentials and experience the full system.</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:30px">
+                <div style="background:var(--bg-card);padding:14px 24px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-size:14px">
+                    <strong style="color:var(--primary)">Admin:</strong> admin / admin123
+                </div>
+                <div style="background:var(--bg-card);padding:14px 24px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-size:14px">
+                    <strong style="color:#4caf50">Security:</strong> security1 / admin123
+                </div>
+                <div style="background:var(--bg-card);padding:14px 24px;border-radius:10px;border:1px solid rgba(255,255,255,.08);font-size:14px">
+                    <strong style="color:#ff9800">Receptionist:</strong> reception1 / admin123
+                </div>
+            </div>
+            <a href="login.html" class="btn-hero btn-hero--primary" style="font-size:17px;padding:16px 44px">Launch Application →</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Built by <a href="https://github.com/parvsshah" target="_blank">Parv Shah</a> · <a href="https://github.com/parvsshah/Visitor-Management-System" target="_blank">View on GitHub</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll-triggered fade-in
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+        // Navbar shrink on scroll
+        window.addEventListener('scroll', () => {
+            document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 50);
+        });
+    </script>
 </body>
 </html>
