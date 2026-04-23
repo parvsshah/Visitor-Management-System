@@ -16,22 +16,6 @@
 
 </div>
 
-## 📸 Screenshots
-
-<div align="center">
-
-| Dashboard | Login |
-|:-:|:-:|
-| ![Dashboard](frontend/assets/images/dashboard_preview.png) | ![Login](frontend/assets/images/login_preview.png) |
-
-| Check-In Form |
-|:-:|
-| ![Check-In](frontend/assets/images/checkin_preview.png) |
-
-</div>
-
----
-
 ## ✨ Features
 
 | Feature | Description |
