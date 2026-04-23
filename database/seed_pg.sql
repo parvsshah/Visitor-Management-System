@@ -6,11 +6,11 @@
 -- Insert User Accounts (Password: admin123)
 -- ============================================
 INSERT INTO USER_ACCOUNT (Username, Full_Name, Role, Contact_No, Email, Password_Hash, Is_Active) VALUES
-('admin', 'Admin User', 'Admin', '9999999999', 'admin@vms.com', '$2b$10$rZ0RkYlKGNqHvVEqH5XzEOxV3GzZ5qWJ1vFGwJqkxZ0JZqGZJQJZe', TRUE),
-('reception1', 'Receptionist One', 'Receptionist', '9999999991', 'reception1@vms.com', '$2b$10$rZ0RkYlKGNqHvVEqH5XzEOxV3GzZ5qWJ1vFGwJqkxZ0JZqGZJQJZe', TRUE),
-('reception2', 'Receptionist Two', 'Receptionist', '9999999992', 'reception2@vms.com', '$2b$10$rZ0RkYlKGNqHvVEqH5XzEOxV3GzZ5qWJ1vFGwJqkxZ0JZqGZJQJZe', TRUE),
-('security1', 'Security One', 'Security', '9999999993', 'security1@vms.com', '$2b$10$rZ0RkYlKGNqHvVEqH5XzEOxV3GzZ5qWJ1vFGwJqkxZ0JZqGZJQJZe', TRUE),
-('security2', 'Security Two', 'Security', '9999999994', 'security2@vms.com', '$2b$10$rZ0RkYlKGNqHvVEqH5XzEOxV3GzZ5qWJ1vFGwJqkxZ0JZqGZJQJZe', TRUE);
+('admin', 'Admin User', 'Admin', '9999999999', 'admin@vms.com', '$2a$10$hKcIwZgih0RhyJkNYfT6TeYcS4OPuoQqJkVSfgukK/Y1qURcwZYy2', TRUE),
+('reception1', 'Receptionist One', 'Receptionist', '9999999991', 'reception1@vms.com', '$2a$10$hKcIwZgih0RhyJkNYfT6TeYcS4OPuoQqJkVSfgukK/Y1qURcwZYy2', TRUE),
+('reception2', 'Receptionist Two', 'Receptionist', '9999999992', 'reception2@vms.com', '$2a$10$hKcIwZgih0RhyJkNYfT6TeYcS4OPuoQqJkVSfgukK/Y1qURcwZYy2', TRUE),
+('security1', 'Security One', 'Security', '9999999993', 'security1@vms.com', '$2a$10$hKcIwZgih0RhyJkNYfT6TeYcS4OPuoQqJkVSfgukK/Y1qURcwZYy2', TRUE),
+('security2', 'Security Two', 'Security', '9999999994', 'security2@vms.com', '$2a$10$hKcIwZgih0RhyJkNYfT6TeYcS4OPuoQqJkVSfgukK/Y1qURcwZYy2', TRUE);
 
 -- ============================================
 -- Insert Security Officers
