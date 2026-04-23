@@ -10,7 +10,7 @@
 [![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
-**[🌐 Live Demo](https://visitor-management-system-parvsshah.vercel.app) · [📋 API Docs](#-api-endpoints) · [🚀 Quick Start](#-quick-start)**
+**[🌐 Live Demo](https://guest-log.vercel.app/) · [📋 API Docs](#-api-endpoints) · [🚀 Quick Start](#-quick-start)**
 
 ---
 
