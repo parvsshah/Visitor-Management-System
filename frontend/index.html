@@ -108,16 +108,6 @@
         }
         .btn-hero--outline:hover { border-color: var(--primary); color: var(--primary); }
 
-        /* ── Screenshot showcase ── */
-        .showcase { margin-top: 60px; perspective: 1200px; }
-        .showcase img {
-            width: 90%; max-width: 900px; border-radius: 16px;
-            border: 1px solid rgba(255,255,255,.08);
-            box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 60px var(--glow);
-            transform: rotateX(4deg); transition: transform .5s;
-        }
-        .showcase img:hover { transform: rotateX(0deg) scale(1.02); }
-
         /* ── Features ── */
         .features-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -140,23 +130,13 @@
         .feature-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; color: #fff; }
         .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
 
-        /* ── Screenshots carousel ── */
-        .screenshots { text-align: center; }
-        .screenshots h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 16px; }
-        .screenshots p { color: var(--text-muted); margin-bottom: 50px; }
-        .screen-row { display: flex; gap: 24px; overflow-x: auto; padding: 20px 0; scroll-snap-type: x mandatory; }
-        .screen-row::-webkit-scrollbar { display: none; }
-        .screen-card {
-            min-width: 340px; flex-shrink: 0; scroll-snap-align: center;
-            border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,.08);
-            transition: transform .3s, box-shadow .3s;
-        }
-        .screen-card:hover { transform: scale(1.03); box-shadow: 0 20px 50px rgba(0,0,0,.4); }
-        .screen-card img { width: 100%; display: block; }
-        .screen-card .screen-label {
-            padding: 16px; background: var(--bg-card); text-align: center;
-            font-weight: 600; font-size: 14px;
-        }
+        /* ── Workflow ── */
+        .workflow-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 60px; counter-reset: step; }
+        .step-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 40px 30px; position: relative; transition: all .3s; text-align: center; }
+        .step-card:hover { transform: translateY(-5px); border-color: rgba(102,126,234,.3); box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+        .step-number { width: 50px; height: 50px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; margin: 0 auto 20px auto; box-shadow: 0 10px 20px var(--glow); }
+        .step-card h3 { font-size: 1.2rem; margin-bottom: 15px; color: #fff; }
+        .step-card p { font-size: 14.5px; color: var(--text-muted); line-height: 1.7; }
 
         /* ── Tech Stack ── */
         .tech-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 50px; }
@@ -216,7 +196,7 @@
             <div class="nav-logo">🛡️ VMS</div>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
-                <li><a href="#screens">Screenshots</a></li>
+                <li><a href="#workflow">How It Works</a></li>
                 <li><a href="#tech">Tech Stack</a></li>
                 <li><a href="#access">Access Control</a></li>
             </ul>
@@ -233,9 +213,6 @@
             <div class="hero-buttons">
                 <a href="login.html" class="btn-hero btn-hero--primary">Open System →</a>
                 <a href="#features" class="btn-hero btn-hero--outline">Explore Features</a>
-            </div>
-            <div class="showcase fade-up">
-                <img src="assets/images/dashboard_preview.png" alt="VMS Dashboard Preview">
             </div>
         </div>
     </section>
@@ -298,26 +275,29 @@
         </div>
     </section>
 
-    <!-- Screenshots -->
-    <section class="section screenshots" id="screens">
+    <!-- How it Works -->
+    <section class="section" id="workflow">
         <div class="container">
-            <div class="fade-up">
-                <div class="badge">Interface Gallery</div>
-                <h2>Beautiful, Functional UI</h2>
-                <p>Every screen is designed for efficiency and clarity.</p>
+            <div class="fade-up" style="text-align: center;">
+                <div class="badge">Operational Flow</div>
+                <h2 style="font-size:2.2rem;font-weight:800;margin:16px 0 8px">How It Works</h2>
+                <p style="color:var(--text-muted);max-width:550px;margin:0 auto">A seamless process from arrival to departure.</p>
             </div>
-            <div class="screen-row fade-up">
-                <div class="screen-card">
-                    <img src="assets/images/login_preview.png" alt="Login Page">
-                    <div class="screen-label">🔐 Login Page</div>
+            <div class="workflow-steps fade-up">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Arrival & Registration</h3>
+                    <p>Upon arrival, the receptionist or security guard creates a new visit session. Returning visitors are instantly recognized, speeding up the process, while new visitors provide their details and vehicle information.</p>
                 </div>
-                <div class="screen-card">
-                    <img src="assets/images/dashboard_preview.png" alt="Dashboard">
-                    <div class="screen-label">📊 Dashboard</div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Verification & Access</h3>
+                    <p>The system cross-references the visitor against the blacklist. If clear, they are assigned a host, the visit is logged, and they are granted entry to specific areas of the facility.</p>
                 </div>
-                <div class="screen-card">
-                    <img src="assets/images/checkin_preview.png" alt="Check-In Form">
-                    <div class="screen-label">📋 Check-In Form</div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Monitoring & Departure</h3>
+                    <p>During the visit, the system tracks the session duration. Overstays trigger automated alerts. Upon departure, the visitor is checked out, and the session is archived in the audit logs for future reporting.</p>
                 </div>
             </div>
         </div>
@@ -422,7 +402,7 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>Built by <a href="https://github.com/parvsshah" target="_blank">Parv Shah</a> · <a href="https://github.com/parvsshah/Visitor-Management-System" target="_blank">View on GitHub</a></p>
+            <p>&copy; 2026 Visitor Management System. All rights reserved.</p>
         </div>
     </footer>
 
